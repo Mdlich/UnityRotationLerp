@@ -5,8 +5,12 @@ using UnityEngine;
 public class Spinner : MonoBehaviour
 {
     public float speed = 0.0f;
-    void Update()
+    private float currentAngle;
+    public Vector3 CurrentAngle => new Vector3(0f, currentAngle, 0f);
+	void Update()
     {
-        transform.Rotate(transform.up, speed);
+        currentAngle += speed * Time.deltaTime;
+        transform.rotation = Quaternion.Euler(0, currentAngle, 0);
+        //transform.Rotate(transform.up, speed);
     }
 }

@@ -13,6 +13,7 @@ public class Generator : MonoBehaviour
 
     // Internal Datasets
     private List<Vector3> genPts = new List<Vector3>();
+    private List<float> angles = new List<float>();
     private List<Vector3> genExtraPts = new List<Vector3>();
 
     // Generate Points
@@ -20,14 +21,15 @@ public class Generator : MonoBehaviour
     {
         genPts.Clear();
         genExtraPts.Clear();
+        angles.Clear();
 
-        var start = spt.gameObject.transform;
-        var end = ept.gameObject.transform;
+        var start = spt.GetComponent<Spinner>();// spt.gameObject.transform;
+        var end = ept.GetComponent<Spinner>();//.gameObject.transform;
 
         // Base Points
         for (int i = 1; i < segments; i++)
         {
-            Vector3 pt = Vector3.Lerp(start.position, end.position, (i * 1.0f) / segments);
+            Vector3 pt = Vector3.Lerp(start.transform.position, end.transform.position, (i * 1.0f) / segments);
             genPts.Add(pt);
         }
 
@@ -35,21 +37,25 @@ public class Generator : MonoBehaviour
         for (int i = 0; i < genPts.Count; i++)
         {
             float blendValue = ConvertRange(0, genPts.Count, 0.0f, 1.0f, i);
-            var localEulerFrom = start.localEulerAngles;
+            var localEulerFrom = start.CurrentAngle;//.localEulerAngles;
             var leftAngleFrom = spt.angleLeft;
             var rightAngleFrom = spt.angleRight;
 
-            var localEulerTo = end.localEulerAngles;
+            var localEulerTo = end.CurrentAngle; //.localEulerAngles;
             var leftAngleTo = ept.angleLeft;
             var rightAngleTo = ept.angleRight;
 
             var localEulerBlend = LerpAngles(localEulerFrom, localEulerTo, blendValue);
+            angles.Add(localEulerBlend.y);
             var leftAngleBlend = Mathf.Lerp(leftAngleFrom, leftAngleTo, blendValue);
             var rightAngleBlend = Mathf.Lerp(rightAngleFrom, rightAngleTo, blendValue);
 
-            var base_left_angle = Quaternion.Euler(localEulerBlend.x, localEulerBlend.y, localEulerBlend.z + leftAngleBlend) * Vector3.right;
-            var base_right_angle = Quaternion.Euler(localEulerBlend.x, localEulerBlend.y, localEulerBlend.z + -rightAngleBlend) * Vector3.right;
-            var leftPos = genPts[i] + -base_left_angle.normalized * length;
+            //var base_left_angle = Quaternion.Euler(localEulerBlend.x, localEulerBlend.y, localEulerBlend.z + leftAngleBlend) * Vector3.right;
+            //var base_left_angle = Quaternion.Euler(0, localEulerBlend.y, 0) * Vector3.right;
+            //var base_right_angle = Quaternion.Euler(localEulerBlend.x, localEulerBlend.y, localEulerBlend.z + -rightAngleBlend) * Vector3.right;
+            var base_right_angle = Quaternion.Euler(0, localEulerBlend.y, 0) * Vector3.right;
+            //var leftPos = genPts[i] + -base_left_angle.normalized * length;
+            var leftPos = genPts[i] + -base_right_angle.normalized * length;
             var rightPos = genPts[i] + base_right_angle.normalized * length;
 
             genExtraPts.Add(leftPos);
@@ -90,9 +96,12 @@ public class Generator : MonoBehaviour
     Vector3 LerpAngles(Vector3 from, Vector3 to, float lerp)
     {
         Vector3 result = new Vector3();
-        result.x = Mathf.LerpAngle(from.x, to.x, lerp);
-        result.y = Mathf.LerpAngle(from.y, to.y, lerp);
-        result.z = Mathf.LerpAngle(from.z, to.z, lerp);
+        result.x = Mathf.Lerp(from.x, to.x, lerp);
+        result.y = Mathf.Lerp(from.y, to.y, lerp);
+        result.z = Mathf.Lerp(from.z, to.z, lerp);
+        //result.x = Mathf.LerpAngle(from.x, to.x, lerp);
+        //result.y = Mathf.LerpAngle(from.y, to.y, lerp);
+        //result.z = Mathf.LerpAngle(from.z, to.z, lerp);
         return result;
     }
 }
